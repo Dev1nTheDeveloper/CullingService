@@ -10,7 +10,7 @@ local Signal = require(script.Signal)
 type TagData = {CullRadius : number, CullInterval : number, InstanceCulledIn : Signal.signal, InstanceCulledOut : Signal.signal}
 type Dictionary<T> = {[string] : T}
 
-local CullingService : {Initialized : boolean, Tags : Dictionary<TagData>, Bins : {string}} = {}
+local CullingService : {Initialized : boolean, Tags : Dictionary<TagData>, Binds : {[string] : boolean}} = {}
 setmetatable(CullingService, CullingService)
 
 local function isInitialized()
@@ -35,6 +35,8 @@ function CullingService:_SetupTag(tag : string) : TagData
 	}
 
 	CullingService.Tags[tag] = data
+	CullingService.Binds["CullingService"..tag] = true
+
 
 	return data
 end
