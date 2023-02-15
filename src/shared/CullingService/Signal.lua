@@ -21,7 +21,6 @@
 --                                                                            --
 -- Authors:                                                                   --
 --   stravant - July 31st, 2021 - Created the file.                           --
---   Swordphin123 - August 15th, 2021 - Minor edits for RaycastHitbox	      --
 --------------------------------------------------------------------------------
 
 -- The currently idle thread to run the next handler on
@@ -43,8 +42,12 @@ end
 -- Coroutine runner that we create coroutines of. The coroutine can be 
 -- repeatedly resumed with functions to run followed by the argument to run
 -- them with.
-local function runEventHandlerInFreeThread(...)
-	acquireRunnerThreadAndCallEventHandler(...)
+local function runEventHandlerInFreeThread()
+	-- Note: We cannot use the initial set of arguments passed to
+	-- runEventHandlerInFreeThread for a call to the handler, because those
+	-- arguments would stay on the stack for the duration of the thread's
+	-- existence, temporarily leaking references. Without access to raw bytecode
+	-- there's no way for us to clear the "..." references from the stack.
 	while true do
 		acquireRunnerThreadAndCallEventHandler(coroutine.yield())
 	end
@@ -70,7 +73,6 @@ function Connection.new(signal, fn)
 end
 
 function Connection:Disconnect()
-	assert(self._connected, 'Cannot disconnect a connection twice.')
 	self._connected = false
 
 	-- Unhook the node, but DON'T clear it. That way any fire calls that are
@@ -89,8 +91,6 @@ function Connection:Disconnect()
 		end
 	end
 end
-
-Connection.Destroy = Connection.Disconnect -- For Maid compatability
 
 -- Make Connection strict
 setmetatable(Connection, {
@@ -114,28 +114,26 @@ export type signal = typeof(Signal) & {
     Wait : () -> (...any)
 }
 
-function Signal.new(signal)
+function Signal.new()
 	return setmetatable({
 		_handlerListHead = false,
-		_signalType = signal
 	}, Signal)
 end
 
 function Signal:Connect(fn)
 	local connection = Connection.new(self, fn)
-	if self._signalType == 1 and self._handlerListHead then
+	if self._handlerListHead then
 		connection._next = self._handlerListHead
 		self._handlerListHead = connection
 	else
 		self._handlerListHead = connection
 	end
-
 	return connection
 end
 
 -- Disconnect all handlers. Since we use a linked list it suffices to clear the
 -- reference to the head handler.
-function Signal:Destroy()
+function Signal:DisconnectAll()
 	self._handlerListHead = false
 end
 
@@ -149,6 +147,8 @@ function Signal:Fire(...)
 		if item._connected then
 			if not freeRunnerThread then
 				freeRunnerThread = coroutine.create(runEventHandlerInFreeThread)
+				-- Get the freeRunnerThread to the first yield
+				coroutine.resume(freeRunnerThread)
 			end
 			task.spawn(freeRunnerThread, item._fn, ...)
 		end
@@ -166,6 +166,19 @@ function Signal:Wait()
 		task.spawn(waitingCoroutine, ...)
 	end)
 	return coroutine.yield()
+end
+
+-- Implement Signal:Once() in terms of a connection which disconnects
+-- itself before running the handler.
+function Signal:Once(fn)
+	local cn;
+	cn = self:Connect(function(...)
+		if cn._connected then
+			cn:Disconnect()
+		end
+		fn(...)
+	end)
+	return cn
 end
 
 -- Make signal strict

@@ -18,7 +18,7 @@ local lastCFrame : CFrame = camera.CFrame
 -- Set some types for easier access in the script
 type Dictionary<T> = {[string] : T}
 type Cullable = BasePart | Attachment
-type CullableData = {[Cullable] : {ActivationUpdated : boolean, IsEligible : boolean}}
+type CullableData = {[Cullable] : boolean}
 type TagData = {
 	IsStatic : boolean, 
 	CullRadius : number, 
@@ -85,6 +85,7 @@ local function setupTag(tag : string) : TagData
 			-- If the tag is dynamic (not static), then we update regardless of if the camera moved, because the parts might move.
 			-- If the tag is static, then we check if the camera legitametly moved, and update accordingly because new parts might be in view, and other parts might have been removed
 			if not tagData.IsStatic or (camera.CFrame.Position - lastCFrame.Position).Magnitude > 1 or camera.CFrame.Rotation ~= lastCFrame.Rotation then
+				lastCFrame = camera.CFrame
 
 				local instanceMovedInCount : number = 0
 				local instanceMovedOutCount : number = 0
@@ -92,19 +93,19 @@ local function setupTag(tag : string) : TagData
 				local instancesMovedOut : {Cullable} = {}
 
 				task.desynchronize()
-				for instance, data in tagData.Instances do
+				for instance, isEligible in tagData.Instances do
 					local position : Vector3 = instance:IsA('BasePart') and instance.Position or instance.WorldPosition
 
 					if isInView(position, tagData.CullRadius) then
-						if not data.IsEligible then
-							data.IsEligible = true
+						if not isEligible then
+							tagData.Instances[instance] = true
 
 							instanceMovedInCount += 1
 							instancesMovedIn[instanceMovedInCount] = instance
 						end
 					else
-						if data.IsEligible then
-							data.IsEligible = false
+						if isEligible then
+							tagData.Instances[instance] = false
 
 							instanceMovedOutCount += 1
 							instancesMovedOut[instanceMovedOutCount] = instance
@@ -128,7 +129,7 @@ local function setupTag(tag : string) : TagData
 
 	local function instanceAdded(instance : Cullable)
 		if instance:IsA('BasePart') or instance:IsA('Attachment') then
-			tagData.Instances[instance] = {ActivationUpdated = false, IsEligible = true}
+			tagData.Instances[instance] = true
 		end
 	end
 
@@ -149,7 +150,7 @@ local function setupTag(tag : string) : TagData
 	return tagData
 end
 
-function CullingService.__tostring()
+function CullingService.__tostring() : string
 	return "Culling Service"
 end
 
@@ -171,7 +172,7 @@ function CullingService:GetInstancesCulledInSignal(tag : string) : Signal.signal
 end
 
 -- Get the signal for instances culled out of a specific tag
-function CullingService:GetInstancesCulledOutSignal(tag : string)
+function CullingService:GetInstancesCulledOutSignal(tag : string) : Signal.signal
 	if not (isInitialized()) then
 		warn("CullingService has not been initialized")
 		return
@@ -244,6 +245,8 @@ function CullingService:SetIsStatic(tag : string, isStatic : boolean)
 		CullingService.Tags[tag] = data
 	end
 end
+
+CullingService.SetupTag = setupTag
 
 -- Initialize function of CullingService
 function CullingService:Initialize()
