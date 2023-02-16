@@ -51,6 +51,6 @@ end)
 
 ```
 ### 3. Test Place 
-You can also test it out in this [test place](\CullingService.rbxl)
+You can also test it out in this [test place](/CullingService.rbxl)
 
 
