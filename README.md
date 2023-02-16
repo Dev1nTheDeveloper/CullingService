@@ -12,7 +12,7 @@ You can access the CullingService from [roblox](https://www.roblox.com/library/1
 ## Examples
 Require the module in a localscript, initialize the service, and then use the GetInstanceCullIn and GetInstanceCulledOut signals to start culling parts of a specific tag.
 
-1. Grass
+### 1. Grass
 
 This just prints out all the grass culled in and out.
 
@@ -29,7 +29,7 @@ local grassCulledOut = CullingService:GetInstancesCulledOutSignal('Grass'):Conne
 end)
 
 ```
-2. Particles
+### 2. Particles
 
 This one takes all the instances culled in, and enables a descendant particle. If they get culled out, then the attachment stops emitting the particle.
 
@@ -50,6 +50,7 @@ local grassCulledOut = CullingService:GetInstancesCulledOutSignal('Particle'):Co
 end)
 
 ```
-3. You can also test it out in this test place (PUT )
+### 3. Test Place 
+You can also test it out in this [test place](\CullingService.rbxl)
 
 
