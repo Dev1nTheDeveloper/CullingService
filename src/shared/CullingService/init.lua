@@ -19,7 +19,7 @@ local lastCFrame : CFrame = camera.CFrame
 type Dictionary<T> = {[string] : T}
 type Cullable = BasePart | Attachment
 type CullableData = {[Cullable] : boolean}
-type TagData = {
+export type TagData = {
 	IsStatic : boolean, 
 	CullRadius : number, 
 	CullInterval : number, 
@@ -29,7 +29,15 @@ type TagData = {
 }
 
 local CullingService : {Initialized : boolean, Tags : Dictionary<TagData>, Binds : Dictionary<boolean>} = {Tags = {}, Binds = {}}
-setmetatable(CullingService, CullingService)
+setmetatable(CullingService, {
+	__index = function(_, key : any)
+		return key..' is not a valid member of CullingService'
+	end,
+
+	__newindex = function(_, key : any)
+		print(key..' is not a valid member of CullingService')
+	end
+})
 
 -- Private functions
 
@@ -71,7 +79,7 @@ local function setupTag(tag : string) : TagData
 
 	local count : number = 0
 
-	local function tagRuntime(dt : number)
+	local function tagRuntime(dt : number, firstTime : boolean)
 		count += dt
 
 		if count > tagData.CullInterval then
@@ -79,7 +87,7 @@ local function setupTag(tag : string) : TagData
 
 			-- If the tag is dynamic (not static), then we update regardless of if the camera moved, because the parts might move.
 			-- If the tag is static, then we check if the camera legitametly moved, and update accordingly because new parts might be in view, and other parts might have been removed
-			if not tagData.IsStatic or (camera.CFrame.Position - lastCFrame.Position).Magnitude > 1 or camera.CFrame.Rotation ~= lastCFrame.Rotation then
+			if not tagData.IsStatic or (camera.CFrame.Position - lastCFrame.Position).Magnitude > 1 or camera.CFrame.Rotation ~= lastCFrame.Rotation or firstTime then
 				lastCFrame = camera.CFrame
 
 				local instanceMovedInCount : number = 0
@@ -124,7 +132,7 @@ local function setupTag(tag : string) : TagData
 
 	local function instanceAdded(instance : Cullable)
 		if instance:IsA('BasePart') or instance:IsA('Attachment') then
-			tagData.Instances[instance] = true
+			tagData.Instances[instance] = isInView(instance:IsA('BasePart') and instance.Position or instance.WorldPosition, tagData.CullRadius)
 		end
 	end
 
@@ -141,6 +149,7 @@ local function setupTag(tag : string) : TagData
 	RS:BindToRenderStep('CullingService_'..tag, Enum.RenderPriority.Camera.Value + 1, tagRuntime)
 	CLS:GetInstanceAddedSignal(tag):Connect(instanceAdded)
 	CLS:GetInstanceRemovedSignal(tag):Connect(instanceRemoved)
+
 
 	return tagData
 end
@@ -216,6 +225,27 @@ function CullingService:SetIsStatic(tag : string, isStatic : boolean)
 	end
 end
 
+-- Get the cull radius of a tag
+function CullingService:GetCullRadius(tag : string) : number?
+	return CullingService.Tags[tag] and CullingService.Tags[tag].CullRadius or nil
+end
+
+-- Get the cull interval of a tag
+function CullingService:GetCullInterval(tag : string) : number?
+	return CullingService.Tags[tag] and CullingService.Tags[tag].CullInterval or nil
+end
+
+-- Get whether a tag is static
+function CullingService:GetIsStatic(tag : string) : boolean?
+	return CullingService.Tags[tag] and CullingService.Tags[tag].IsStatic or nil
+end
+
+-- Get the tag data of a tag
+function CullingService:GetTagData(tag : string) : TagData?
+	return CullingService.Tags[tag] or nil
+end
+
+-- Create a new data set of a tag
 CullingService.SetupTag = setupTag
 
 return CullingService

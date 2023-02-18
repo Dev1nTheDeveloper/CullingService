@@ -82,4 +82,8 @@ end)
 | `CullingService:SetCullInterval(tagName, interval)` | Changes the interval at which the CullingService fires each signal of a certain tag |
 | `CullingService:SetCullRadius(tagName, radius)` | Changes the radius distance at which the CullingService culls instances in/out of a certain tag |
 | `CullingService:SetIsStatic(tagName, isStatic)` | Changes whether or not any signals will fire based on if the camera has moved, or on a continuous set interval regardless of if the camera has moved |
+| `CullingService:GetCullInterval(tagName)` | Returns the cull interval of a specified tag. If CullingService does not have data on this tag, this will return `nil`|
+| `CullingService:GetCullRadius(tagName)` | Returns the cull radius of a specified tag. If CullingService does not have data on this tag, this will return `nil`|
+| `CullingService:GetIsStatic(tagName)` | Returns whether the specified tag is static. If CullingService does not have data on this tag, this will return `nil`|
+| `CullingService:GetTagData(tagName)` | Returns the tag data of a specified tag. If CullingService does not have data on this tag, this will return `nil`|
 | `CullingService:SetupTag(tagName)` | Creates new data settings for the specified tag |
