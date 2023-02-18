@@ -35,7 +35,7 @@ local CullingService = require(game:GetService('ReplicatedStorage').CullingServi
 ```
 
 ## Examples
-Use the GetInstanceCullIn and GetInstanceCulledOut signals to start culling parts of a specific tag.
+Use the GetInstancesCulledIn and GetInstancesCulledOut signals to start culling parts of a specific tag.
 
 ### 1. Grass
 
