@@ -28,15 +28,10 @@ type TagData = {
 	InstancesCulledOut : Signal.signal
 }
 
-local CullingService : {Initialized : boolean, Tags : Dictionary<TagData>, Binds : {[string] : boolean}} = {}
+local CullingService : {Initialized : boolean, Tags : Dictionary<TagData>, Binds : Dictionary<boolean>} = {Tags = {}, Binds = {}}
 setmetatable(CullingService, CullingService)
 
 -- Private functions
-
--- Check if CullingService has been initialized
-local function isInitialized() : boolean
-	return CullingService.Initialized or false
-end
 
 -- Check if the instance is in the FoV of the camera, and is within range
 local function isInView(position : Vector3, cullRadius : number) : boolean
@@ -156,11 +151,6 @@ end
 
 -- Get the signal for instances culled in of a specific tag
 function CullingService:GetInstancesCulledInSignal(tag : string) : Signal.signal
-	if not (isInitialized()) then
-		warn("CullingService has not been initialized")
-		return
-	end
-
 	assert(type(tag) == 'string' and #tag > 0, "Bad Argument #1: Argument must be a string that is not empty")
 
 	if CullingService.Tags[tag] then
@@ -173,11 +163,6 @@ end
 
 -- Get the signal for instances culled out of a specific tag
 function CullingService:GetInstancesCulledOutSignal(tag : string) : Signal.signal
-	if not (isInitialized()) then
-		warn("CullingService has not been initialized")
-		return
-	end
-
 	assert(type(tag) == 'string' and #tag > 0, "Bad Argument #1: Argument must be a string that is not empty")
 
 	if CullingService.Tags[tag] then
@@ -190,11 +175,6 @@ end
 
 -- Change the cull radius of a specific tag
 function CullingService:SetCullRadius(tag : string, radius : number)
-	if not (isInitialized()) then
-		warn("CullingService has not been initialized")
-		return
-	end
-
 	assert(type(tag) == 'string' and #tag > 0, "Bad Argument #1: Argument must be a string that is not empty")
 	assert(type(radius) == 'number' and radius == radius, "Bad Argument #2: Argument must be a number that is not NaN")
 	
@@ -209,11 +189,6 @@ end
 
 -- Change the cull radius of a tag
 function CullingService:SetCullInterval(tag : string, interval : number)
-	if not (isInitialized()) then
-		warn("CullingService has not been initialized")
-		return
-	end
-
 	assert(type(tag) == 'string' and #tag > 0, "Bad Argument #1: Argument must be a string that is not empty")
 	assert(type(interval) == 'number' and interval == interval, "Bad Argument #2: Argument must be a number that is not NaN")
 
@@ -228,11 +203,6 @@ end
 
 -- Set whether or not the tag is a static tag or a dynamic tag
 function CullingService:SetIsStatic(tag : string, isStatic : boolean)
-	if not (isInitialized()) then
-		warn("CullingService has not been initialized")
-		return
-	end
-
 	assert(type(tag) == 'string' and #tag > 0, "Bad Argument #1: Argument must be a string that is not empty")
 	assert(type(isStatic) == 'boolean', "Bad Argument #2: Argument must be a boolean")
 
@@ -247,12 +217,5 @@ function CullingService:SetIsStatic(tag : string, isStatic : boolean)
 end
 
 CullingService.SetupTag = setupTag
-
--- Initialize function of CullingService
-function CullingService:Initialize()
-	self.Initialized = true
-	self.Tags = {}
-	self.Binds = {}
-end
 
 return CullingService

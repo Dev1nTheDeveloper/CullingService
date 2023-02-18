@@ -18,7 +18,6 @@ This just prints out all the grass culled in and out.
 
 ```lua
 local CullingService = require(game.ReplicatedStorage.CullingService)
-CullingService:Initialize()
 
 local grassCulledIn = CullingService:GetInstancesCulledInSignal('Grass'):Connect(function(instancesCulledIn)
     print(instancesCulledIn)
@@ -35,7 +34,6 @@ This one takes all the instances culled in, and enables a descendant particle. I
 
 ```lua
 local CullingService = require(game.ReplicatedStorage.CullingService)
-CullingService:Initialize()
 
 local grassCulledIn = CullingService:GetInstancesCulledInSignal('Particle'):Connect(function(instancesCulledIn)
     for _, attachment in instancesCulledIn do
@@ -50,7 +48,3 @@ local grassCulledOut = CullingService:GetInstancesCulledOutSignal('Particle'):Co
 end)
 
 ```
-### 3. Test Place 
-You can also test it out in this [test place](/CullingService.rbxl)
-
-
