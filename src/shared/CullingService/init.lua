@@ -28,7 +28,7 @@ export type TagData = {
 	InstancesCulledOut : Signal.signal
 }
 
-local CullingService : {Initialized : boolean, Tags : Dictionary<TagData>, Binds : Dictionary<boolean>} = {Tags = {}, Binds = {}}
+local CullingService : {Tags : Dictionary<TagData>, Binds : Dictionary<boolean>} = {Tags = {}, Binds = {}}
 setmetatable(CullingService, {
 	__index = function(_, key : any)
 		return key..' is not a valid member of CullingService'
@@ -79,7 +79,7 @@ local function setupTag(tag : string) : TagData
 
 	local count : number = 0
 
-	local function tagRuntime(dt : number, firstTime : boolean)
+	local function tagRuntime(dt : number)
 		count += dt
 
 		if count > tagData.CullInterval then
@@ -87,7 +87,7 @@ local function setupTag(tag : string) : TagData
 
 			-- If the tag is dynamic (not static), then we update regardless of if the camera moved, because the parts might move.
 			-- If the tag is static, then we check if the camera legitametly moved, and update accordingly because new parts might be in view, and other parts might have been removed
-			if not tagData.IsStatic or (camera.CFrame.Position - lastCFrame.Position).Magnitude > 1 or camera.CFrame.Rotation ~= lastCFrame.Rotation or firstTime then
+			if not tagData.IsStatic or ((camera.CFrame.Position - lastCFrame.Position).Magnitude > 1 or camera.CFrame.Rotation ~= lastCFrame.Rotation) then
 				lastCFrame = camera.CFrame
 
 				local instanceMovedInCount : number = 0
