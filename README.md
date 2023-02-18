@@ -47,4 +47,5 @@ local grassCulledOut = CullingService:GetInstancesCulledOutSignal('Particle'):Co
     end
 end)
 
+print "Comfid"
 ```
