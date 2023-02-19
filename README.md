@@ -4,6 +4,8 @@ Cull BaseParts and/or Attachments within range and within the field of view, and
 At the moment, only attachments and baseparts are eligible to be culled. Models will be in the future.
 This is strictly a client-based service, so using this on the server will do nothing for you, and probably cause errors.
 
+Here is a [video](https://youtu.be/XJVEiDr-wZc) showcasing this tool.
+
 ## Details
 CullingService utilizes Roblox's CollectionService to track objects of a certain tag entering and leaving the camera's fieldOfView, as well as the object's relative distance from the player's character. This is extremely useful for conserving the lua heap and memory, as memory being conserved for visual things that you don't see is a waste of memory space.
 
