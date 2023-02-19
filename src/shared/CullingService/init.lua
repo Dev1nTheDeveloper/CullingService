@@ -12,9 +12,6 @@ local Signal = require(script.Signal)
 local player : Player = PS.LocalPlayer
 local camera : Camera = workspace.CurrentCamera
 
--- Store the last updated CFrame of the camera
-local lastCFrame : CFrame = camera.CFrame
-
 -- Set some types for easier access in the script
 type Dictionary<T> = {[string] : T}
 type Cullable = BasePart | Attachment
@@ -34,7 +31,7 @@ setmetatable(CullingService, CullingService)
 -- Private functions
 
 -- Check if the instance is in the FoV of the camera, and is within range
-local function isInView(position : Vector3, cullRadius : number) : boolean
+local function isInView(lastCFrame : CFrame, position : Vector3, cullRadius : number) : boolean
 	local controlVector : Vector3 = lastCFrame.LookVector
 	local directionVector : Vector3 = (position - lastCFrame.Position)
 
@@ -70,6 +67,9 @@ local function setupTag(tag : string) : TagData
 	CullingService.Binds["CullingService_"..tag] = true
 
 	local count : number = 0
+	
+	-- Store the last updated CFrame of the camera
+	local lastCFrame : CFrame = camera.CFrame
 
 	local function tagRuntime(dt : number)
 		count += dt
@@ -79,7 +79,7 @@ local function setupTag(tag : string) : TagData
 
 			-- If the tag is dynamic (not static), then we update regardless of if the camera moved, because the parts might move.
 			-- If the tag is static, then we check if the camera legitametly moved, and update accordingly because new parts might be in view, and other parts might have been removed
-			if not tagData.IsStatic or ((camera.CFrame.Position - lastCFrame.Position).Magnitude > 1 or camera.CFrame.Rotation ~= lastCFrame.Rotation) then
+			if not tagData.IsStatic or (camera.CFrame.Position - lastCFrame.Position).Magnitude > 1 or camera.CFrame.Rotation ~= lastCFrame.Rotation then
 				lastCFrame = camera.CFrame
 
 				local instanceMovedInCount : number = 0
@@ -91,7 +91,7 @@ local function setupTag(tag : string) : TagData
 				for instance, isEligible in tagData.Instances do
 					local position : Vector3 = instance:IsA('BasePart') and instance.Position or instance.WorldPosition
 
-					if isInView(position, tagData.CullRadius) then
+					if isInView(lastCFrame, position, tagData.CullRadius) then
 						if not isEligible then
 							tagData.Instances[instance] = true
 
@@ -124,7 +124,7 @@ local function setupTag(tag : string) : TagData
 
 	local function instanceAdded(instance : Cullable)
 		if instance:IsA('BasePart') or instance:IsA('Attachment') then
-			tagData.Instances[instance] = isInView(instance:IsA('BasePart') and instance.Position or instance.WorldPosition, tagData.CullRadius)
+			tagData.Instances[instance] = isInView(lastCFrame, instance:IsA('BasePart') and instance.Position or instance.WorldPosition, tagData.CullRadius)
 		end
 	end
 
@@ -238,6 +238,8 @@ function CullingService:GetTagData(tag : string) : TagData?
 end
 
 -- Create a new data set of a tag
-CullingService.SetupTag = setupTag
+function CullingService:SetupTag(tag : string)
+	setupTag(tag)
+end
 
 return CullingService
