@@ -29,15 +29,7 @@ export type TagData = {
 }
 
 local CullingService : {Tags : Dictionary<TagData>, Binds : Dictionary<boolean>} = {Tags = {}, Binds = {}}
-setmetatable(CullingService, {
-	__index = function(_, key : any)
-		return key..' is not a valid member of CullingService'
-	end,
-
-	__newindex = function(_, key : any)
-		print(key..' is not a valid member of CullingService')
-	end
-})
+setmetatable(CullingService, CullingService)
 
 -- Private functions
 
