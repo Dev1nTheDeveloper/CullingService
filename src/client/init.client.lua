@@ -1,8 +1,8 @@
 local RPS = game:GetService('ReplicatedStorage')
 
-local CullingService = require(RPS.Common.CullingService)
+local CullService = require(RPS.Common.CullService)
 task.wait(10)
-CullingService:GetInstancesCulledInSignal('TestTag'):Connect(function(instances : {BasePart | Attachment})
+CullService:GetInstancesCulledInSignal('TestTag'):Connect(function(instances : {BasePart | Attachment})
     for _, part in instances do
         if part:IsA('BasePart') then
             part.BrickColor = BrickColor.Yellow()
@@ -10,7 +10,7 @@ CullingService:GetInstancesCulledInSignal('TestTag'):Connect(function(instances 
     end
 end)
 
-CullingService:GetInstancesCulledOutSignal('TestTag'):Connect(function(instances : {BasePart | Attachment})
+CullService:GetInstancesCulledOutSignal('TestTag'):Connect(function(instances : {BasePart | Attachment})
     for _, part in instances do
         if part:IsA('BasePart') then
             part.BrickColor = BrickColor.Black()
@@ -18,4 +18,4 @@ CullingService:GetInstancesCulledOutSignal('TestTag'):Connect(function(instances
     end
 end)
 
-CullingService:SetCullRadius('TestTag', 100)
+CullService:SetCullRadius('TestTag', 100)

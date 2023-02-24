@@ -25,8 +25,8 @@ export type TagData = {
 	InstancesCulledOut : Signal.signal
 }
 
-local CullingService : {Tags : Dictionary<TagData>, Binds : Dictionary<boolean>} = {Tags = {}, Binds = {}}
-setmetatable(CullingService, CullingService)
+local CullService : {Tags : Dictionary<TagData>, Binds : Dictionary<boolean>} = {Tags = {}, Binds = {}}
+setmetatable(CullService, CullService)
 
 -- Private functions
 
@@ -63,8 +63,8 @@ local function setupTag(tag : string) : TagData
 		InstancesCulledOut = Signal.new()
 	}
 
-	CullingService.Tags[tag] = tagData
-	CullingService.Binds["CullingService_"..tag] = true
+	CullService.Tags[tag] = tagData
+	CullService.Binds["CullService_"..tag] = true
 
 	local count : number = 0
 	
@@ -138,7 +138,7 @@ local function setupTag(tag : string) : TagData
 		instanceAdded(tagged)
 	end
 
-	RS:BindToRenderStep('CullingService_'..tag, Enum.RenderPriority.Camera.Value + 1, tagRuntime)
+	RS:BindToRenderStep('CullService_'..tag, Enum.RenderPriority.Camera.Value + 1, tagRuntime)
 	CLS:GetInstanceAddedSignal(tag):Connect(instanceAdded)
 	CLS:GetInstanceRemovedSignal(tag):Connect(instanceRemoved)
 
@@ -146,16 +146,16 @@ local function setupTag(tag : string) : TagData
 	return tagData
 end
 
-function CullingService.__tostring() : string
+function CullService.__tostring() : string
 	return "Culling Service"
 end
 
 -- Get the signal for instances culled in of a specific tag
-function CullingService:GetInstancesCulledInSignal(tag : string) : Signal.signal
+function CullService:GetInstancesCulledInSignal(tag : string) : Signal.signal
 	assert(type(tag) == 'string' and #tag > 0, "Bad Argument #1: Argument must be a string that is not empty")
 
-	if CullingService.Tags[tag] then
-		return CullingService.Tags[tag].InstancesCulledIn
+	if CullService.Tags[tag] then
+		return CullService.Tags[tag].InstancesCulledIn
 	else
 		local data : TagData = setupTag(tag)
 		return data.InstancesCulledIn
@@ -163,11 +163,11 @@ function CullingService:GetInstancesCulledInSignal(tag : string) : Signal.signal
 end
 
 -- Get the signal for instances culled out of a specific tag
-function CullingService:GetInstancesCulledOutSignal(tag : string) : Signal.signal
+function CullService:GetInstancesCulledOutSignal(tag : string) : Signal.signal
 	assert(type(tag) == 'string' and #tag > 0, "Bad Argument #1: Argument must be a string that is not empty")
 
-	if CullingService.Tags[tag] then
-		return CullingService.Tags[tag].InstancesCulledOut
+	if CullService.Tags[tag] then
+		return CullService.Tags[tag].InstancesCulledOut
 	else
 		local data : TagData = setupTag(tag)
 		return data.InstancesCulledOut
@@ -175,71 +175,71 @@ function CullingService:GetInstancesCulledOutSignal(tag : string) : Signal.signa
 end
 
 -- Change the cull radius of a specific tag
-function CullingService:SetCullRadius(tag : string, radius : number)
+function CullService:SetCullRadius(tag : string, radius : number)
 	assert(type(tag) == 'string' and #tag > 0, "Bad Argument #1: Argument must be a string that is not empty")
 	assert(type(radius) == 'number' and radius == radius, "Bad Argument #2: Argument must be a number that is not NaN")
 	
-	if CullingService.Tags[tag] then
-		CullingService.Tags[tag].CullRadius = radius
+	if CullService.Tags[tag] then
+		CullService.Tags[tag].CullRadius = radius
 	else
-		warn('CullingService: Created new tag data because '..tag..' is was not already initialized')
+		warn('CullService: Created new tag data because '..tag..' is was not already initialized')
 		local data : TagData = setupTag(tag)
 		data.CullRadius = radius
 	end
 end
 
 -- Change the cull radius of a tag
-function CullingService:SetCullInterval(tag : string, interval : number)
+function CullService:SetCullInterval(tag : string, interval : number)
 	assert(type(tag) == 'string' and #tag > 0, "Bad Argument #1: Argument must be a string that is not empty")
 	assert(type(interval) == 'number' and interval == interval, "Bad Argument #2: Argument must be a number that is not NaN")
 
-	if CullingService.Tags[tag] then
-		CullingService.Tags[tag].CullInterval = interval
+	if CullService.Tags[tag] then
+		CullService.Tags[tag].CullInterval = interval
 	else
-		warn('CullingService: Created new tag data because '..tag..' is was not already initialized')
+		warn('CullService: Created new tag data because '..tag..' is was not already initialized')
 		local data : TagData = setupTag(tag)
 		data.CullInterval = interval
 	end
 end
 
 -- Set whether or not the tag is a static tag or a dynamic tag
-function CullingService:SetIsStatic(tag : string, isStatic : boolean)
+function CullService:SetIsStatic(tag : string, isStatic : boolean)
 	assert(type(tag) == 'string' and #tag > 0, "Bad Argument #1: Argument must be a string that is not empty")
 	assert(type(isStatic) == 'boolean', "Bad Argument #2: Argument must be a boolean")
 
-	if CullingService.Tags[tag] then
-		CullingService.Tags[tag].IsStatic = isStatic
+	if CullService.Tags[tag] then
+		CullService.Tags[tag].IsStatic = isStatic
 	else
-		warn('CullingService: Created new tag data because '..tag..' is was not already initialized')
+		warn('CullService: Created new tag data because '..tag..' is was not already initialized')
 		local data : TagData = setupTag(tag)
 		data.IsStatic = isStatic
-		CullingService.Tags[tag] = data
+		CullService.Tags[tag] = data
 	end
 end
 
 -- Get the cull radius of a tag
-function CullingService:GetCullRadius(tag : string) : number?
-	return CullingService.Tags[tag] and CullingService.Tags[tag].CullRadius or nil
+function CullService:GetCullRadius(tag : string) : number?
+	return CullService.Tags[tag] and CullService.Tags[tag].CullRadius or nil
 end
 
 -- Get the cull interval of a tag
-function CullingService:GetCullInterval(tag : string) : number?
-	return CullingService.Tags[tag] and CullingService.Tags[tag].CullInterval or nil
+function CullService:GetCullInterval(tag : string) : number?
+	return CullService.Tags[tag] and CullService.Tags[tag].CullInterval or nil
 end
 
 -- Get whether a tag is static
-function CullingService:GetIsStatic(tag : string) : boolean?
-	return CullingService.Tags[tag] and CullingService.Tags[tag].IsStatic or nil
+function CullService:GetIsStatic(tag : string) : boolean?
+	return CullService.Tags[tag] and CullService.Tags[tag].IsStatic or nil
 end
 
 -- Get the tag data of a tag
-function CullingService:GetTagData(tag : string) : TagData?
-	return CullingService.Tags[tag] or nil
+function CullService:GetTagData(tag : string) : TagData?
+	return CullService.Tags[tag] or nil
 end
 
 -- Create a new data set of a tag
-function CullingService:SetupTag(tag : string)
+function CullService:SetupTag(tag : string)
 	setupTag(tag)
 end
 
-return CullingService
+return CullService
