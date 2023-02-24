@@ -124,7 +124,7 @@ local function setupTag(tag : string) : TagData
 
 	local function instanceAdded(instance : Cullable)
 		if instance:IsA('BasePart') or instance:IsA('Attachment') then
-			tagData.Instances[instance] = isInView(lastCFrame, instance:IsA('BasePart') and instance.Position or instance.WorldPosition, tagData.CullRadius)
+			tagData.Instances[instance] = false -- starts off false because objects could be in the view, but not actually updated
 		end
 	end
 
