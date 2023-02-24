@@ -15,7 +15,7 @@ local function update()
 	interval = tonumber(intervalTB.Text) or interval
 
 	CullService:SetIsStatic('TestTag', false)
-	task.delay(.2, function()
+	task.delay(interval + 0.1, function()
 		CullService:SetIsStatic('TestTag', true)
 	end)
 	
