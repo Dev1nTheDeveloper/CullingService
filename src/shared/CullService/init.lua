@@ -1,3 +1,5 @@
+--!strict
+
 local CLS = game:GetService('CollectionService')
 local RS = game:GetService('RunService')
 local PS = game:GetService('Players')
@@ -12,6 +14,9 @@ local Signal = require(script.Signal)
 local player : Player = PS.LocalPlayer
 local camera : Camera = workspace.CurrentCamera
 
+-- string warnings
+local NOT_INITIALIZED : string = "CullService: Created new tag data because the '%s' tag was not already initialized"
+
 -- Set some types for easier access in the script
 type Dictionary<T> = {[string] : T}
 type Cullable = BasePart | Attachment
@@ -25,7 +30,7 @@ export type TagData = {
 	InstancesCulledOut : Signal.signal
 }
 
-local CullService : {Tags : Dictionary<TagData>, Binds : Dictionary<boolean>} = {Tags = {}, Binds = {}}
+local CullService = {Tags = {}, Binds = {}}
 setmetatable(CullService, CullService)
 
 -- Private functions
@@ -39,10 +44,10 @@ local function isInView(lastCFrame : CFrame, position : Vector3, cullRadius : nu
 	local angle : number = math.floor(math.deg(directionVector.Unit:Angle(controlVector)))
 
 	if angle <= threshold then
-		directionVector = player.Character and player.Character.PrimaryPart and (position - player.Character.PrimaryPart.Position) 
-		local xzDistance : number? = directionVector and (Vector3.new(directionVector.X, 0, directionVector.Z)).Magnitude
+		directionVector = (player.Character and player.Character.PrimaryPart) and (position - player.Character.PrimaryPart.Position) or directionVector
+		local xzDistance : number = (Vector3.new(directionVector.X, 0, directionVector.Z)).Magnitude
 
-		if xzDistance and xzDistance <= cullRadius then
+		if xzDistance <= cullRadius then
 			return true
 		else
 			return false
@@ -89,7 +94,7 @@ local function setupTag(tag : string) : TagData
 
 				task.desynchronize()
 				for instance, isEligible in tagData.Instances do
-					local position : Vector3 = instance:IsA('BasePart') and instance.Position or instance.WorldPosition
+					local position : Vector3 = (instance:IsA('BasePart') and instance.Position) or (instance :: Attachment).WorldPosition
 
 					if isInView(lastCFrame, position, tagData.CullRadius) then
 						if not isEligible then
@@ -182,7 +187,7 @@ function CullService:SetCullRadius(tag : string, radius : number)
 	if CullService.Tags[tag] then
 		CullService.Tags[tag].CullRadius = radius
 	else
-		warn('CullService: Created new tag data because '..tag..' is was not already initialized')
+		warn(NOT_INITIALIZED:format(tag))
 		local data : TagData = setupTag(tag)
 		data.CullRadius = radius
 	end
@@ -196,7 +201,7 @@ function CullService:SetCullInterval(tag : string, interval : number)
 	if CullService.Tags[tag] then
 		CullService.Tags[tag].CullInterval = interval
 	else
-		warn('CullService: Created new tag data because '..tag..' is was not already initialized')
+		warn(NOT_INITIALIZED:format(tag))
 		local data : TagData = setupTag(tag)
 		data.CullInterval = interval
 	end
@@ -210,7 +215,7 @@ function CullService:SetIsStatic(tag : string, isStatic : boolean)
 	if CullService.Tags[tag] then
 		CullService.Tags[tag].IsStatic = isStatic
 	else
-		warn('CullService: Created new tag data because '..tag..' is was not already initialized')
+		warn(NOT_INITIALIZED:format(tag))
 		local data : TagData = setupTag(tag)
 		data.IsStatic = isStatic
 		CullService.Tags[tag] = data

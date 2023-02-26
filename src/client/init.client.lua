@@ -1,5 +1,11 @@
+--!strict
+
 local RPS = game:GetService('ReplicatedStorage')
 local PS = game:GetService('Players')
+
+if not game:IsLoaded() then 
+	game.Loaded:Wait()
+end
 
 local CullService = require(RPS.Common.CullService)
 
@@ -7,8 +13,8 @@ local GUI = PS.LocalPlayer.PlayerGui:WaitForChild('Modifier')
 local radiusTB : TextBox = GUI.Container.Holder.Buttons.Radius.TextBox
 local intervalTB : TextBox = GUI.Container.Holder.Buttons.Interval.TextBox
 
-local radius = 100
-local interval = 0.1
+local radius : number = 100
+local interval : number = 0.1
 
 local function update()
 	radius = tonumber(radiusTB.Text) or radius
