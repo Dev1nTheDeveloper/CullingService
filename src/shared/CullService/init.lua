@@ -162,6 +162,7 @@ function CullService:GetInstancesCulledInSignal(tag : string) : Signal.signal
 	if CullService.Tags[tag] then
 		return CullService.Tags[tag].InstancesCulledIn
 	else
+		warn(NOT_INITIALIZED:format(tag))
 		local data : TagData = setupTag(tag)
 		return data.InstancesCulledIn
 	end
@@ -174,6 +175,7 @@ function CullService:GetInstancesCulledOutSignal(tag : string) : Signal.signal
 	if CullService.Tags[tag] then
 		return CullService.Tags[tag].InstancesCulledOut
 	else
+		warn(NOT_INITIALIZED:format(tag))
 		local data : TagData = setupTag(tag)
 		return data.InstancesCulledOut
 	end
